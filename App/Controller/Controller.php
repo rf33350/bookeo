@@ -5,7 +5,8 @@ namespace App\Controller;
 Class Controller{
     public function route():void
     {
-        if( isset($_GET['controller'])) {
+        try {
+           if( isset($_GET['controller'])) {
             switch ($_GET['controller']) {
                 case 'page':
                     //charger le controller de page
@@ -13,16 +14,23 @@ Class Controller{
                     $pageController->route();
                     break;
                 case 'book':
-                    //charger le controller de page
-                    var_dump('On charge BookController');
+                    //charger le controller de book
+                    $bookController = new BookController();
+                    $bookController->route();
                     break;
                 default:
-                    //on gère l'erreur
+                    throw new \Exception("Le controleur n'existe pas");
                     break;
-            }
-        } else {
-            //charger la page d'accueil
-        }
+                }
+            } else {
+                $pageController = new PageController();
+                $pageController->home();
+            } 
+        } catch(\Exception $e) {
+            $this->render('/errors/error_default',[
+                'error' => $e->getMessage()
+            ]);
+        }   
     }
 
     protected function render(string $path, array $params = []):void
@@ -43,7 +51,9 @@ Class Controller{
             }
         } catch (\Exception $e) 
         {
-            echo $e->getMessage();
+            $this->render('/errors/error_default',[
+                'error' => $e->getMessage()
+            ]);
         }   
     }
 }
