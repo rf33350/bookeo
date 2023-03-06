@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use App\Repository\AuthorRepository;
 use App\Repository\BookRepository;
 
 class BookController extends Controller 
@@ -58,9 +59,13 @@ class BookController extends Controller
                 //charger le livre par un appel au repository
                 $bookRepository = new BookRepository();
                 $book = $bookRepository->findOneById($id);
+                
+                $authorRepository = new AuthorRepository();
+                $author = $authorRepository->findOneById($id);
 
                 $params= [
                     'book' => $book,
+                    'author' => $author,
                 ];
                 $path = 'book/show';
                 //On apelle la vue book/show
@@ -78,23 +83,52 @@ class BookController extends Controller
     }
 
     protected function list() {
-        //On pourrait récupérer les données en faisant appel au model
-        $params= [
+        try {
+                $bookRepository = new BookRepository();
+                $books = $bookRepository->findAllBooks();
+
+                $authorRepository = new AuthorRepository();
+                $authors = $authorRepository->findAllAuthors();
+
+
+                $params= [
+                    'books' => $books,
+                    'authors' => $authors,
+                ];
+                $path = 'book/list';
+                //On apelle la vue book/show
+                $this->render($path, $params);
+        } catch (\Exception $e) {
+            $this->render('/errors/error_default',[
+                'error' => $e->getMessage()
+            ]);
     
-        ];
-        //On apelle la vue
-        $path = 'book/list';
-        $this->render($path, $params);
+        }    
     }
 
     protected function edit() {
-        //On pourrait récupérer les données en faisant appel au model
-        $params= [
-    
-        ];
-        //On apelle la vue
-        $path = 'book/edit';
-        $this->render($path, $params);
+        try {
+            if(isset($_GET['id']) && $_GET['id'] !=='') {
+                $id = (int)$_GET['id'];
+                
+                //charger le livre par un appel au repository
+                $bookRepository = new BookRepository();
+                $book = $bookRepository->findOneById($id);
+
+                $params= [
+                    'book' => $book,
+                ];
+                $path = 'book/edit';
+                //On apelle la vue book/show
+                $this->render($path, $params);
+            } else {
+                throw new \Exception("L'ID du livre n'existe pas");
+            }
+        } catch (\Exception $e) {
+            $this->render('/errors/error_default',[
+                'error' => $e->getMessage()
+            ]);
+        }
     }
 
     protected function add() {
